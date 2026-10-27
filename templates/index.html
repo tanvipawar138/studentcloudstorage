@@ -1,0 +1,570 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Cloud Storage</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="app-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <a href="{{ url_for('index') }}" class="brand">
+            <span class="brand-icon">☁</span>
+            <span>Study<span class="brand-accent">Space</span>
+                <small>CLOUD STORAGE</small>
+            </span>
+        </a>
+
+        <p class="nav-label">WORKSPACE</p>
+
+        <a href="#overview" class="nav-link active">
+            <span>▦</span> Overview
+        </a>
+        <a href="#my-files" class="nav-link">
+            <span>▤</span> My Files
+        </a>
+        <a href="#upload" class="nav-link">
+            <span>↑</span> Upload Files
+        </a>
+
+        <p class="nav-label">CATEGORIES</p>
+
+        
+        <a href="#my-files" class="nav-link category-link"
+           data-sidebar-category="Documents">
+            <span class="category-dot documents-dot"></span> Documents
+        </a>
+
+        <a href="#my-files" class="nav-link category-link"
+           data-sidebar-category="Images">
+            <span class="category-dot images-dot"></span> Images
+        </a>
+        <a href="#my-files" class="nav-link category-link"
+           data-sidebar-category="Code">
+            <span class="category-dot code-dot"></span> Code
+        </a>
+        <a href="#my-files" class="nav-link category-link"
+           data-sidebar-category="Archives">
+            <span class="category-dot archives-dot"></span> Archives
+        </a>
+        <a href="#my-files" class="nav-link category-link"
+           data-sidebar-category="Audio">
+            <span class="category-dot audio-dot"></span> Audio
+        </a>
+        <a href="#my-files" class="nav-link category-link"
+           data-sidebar-category="Video">
+            <span class="category-dot video-dot"></span> Video
+        </a>
+        <a href="#study-planner" class="nav-link">
+            <span class="category-dot"></span>
+            Study Planner
+        </a>
+
+        <div class="sidebar-bottom">
+            <div class="cloud-status">
+                <div class="status-icon">☁</div>
+                <div>
+                    <strong>Cloud Connected</strong>
+                    <small>Amazon S3 Storage</small>
+                </div>
+                <span class="status-dot"></span>
+            </div>
+            <p class="sidebar-caption">Your study files, all in one place.</p>
+        </div>
+    </aside>
+
+    <!-- Main Dashboard -->
+    <main class="dashboard" id="overview">
+
+        
+<header class="topbar">
+    <div class="mobile-brand">☁ StudySpace</div>
+
+    <div class="topbar-note">
+        <span class="online-dot"></span>
+        Student workspace
+    </div>
+
+    <div class="profile-chip">
+        <div class="profile-avatar">🎓</div>
+        <div>
+            <div class="profile-name">{{ profile.student_name }}</div>
+            <div class="profile-caption">
+                {{ profile.branch }} · Semester {{ profile.current_semester }}
+            </div>
+            <div class="profile-caption">
+                Academic Year {{ profile.academic_year }}
+            </div>
+        </div>
+    </div>
+</header>
+
+
+        <section class="hero">
+            <div class="hero-content">
+                <span class="eyebrow">✦ YOUR PERSONAL CLOUD</span>
+                <h1>Your learning,<br>beautifully <span>organized.</span></h1>
+                <p>Keep your notes, assignments and academic resources
+                   together. Access your files whenever you need them.</p>
+                <a href="#upload" class="hero-button">
+                    + Upload a file <span>→</span>
+                </a>
+            </div>
+            <div class="hero-art" aria-hidden="true">
+                <div class="orbit orbit-one"></div>
+                <div class="orbit orbit-two"></div>
+                <div class="hero-cloud">☁</div>
+                <div class="floating-file floating-file-one">
+                    <span class="file-symbol pdf-symbol">PDF</span>
+                    <span>Notes.pdf</span>
+                </div>
+                <div class="floating-file floating-file-two">
+                    <span class="file-symbol image-symbol">IMG</span>
+                    <span>Project.png</span>
+                </div>
+                <div class="floating-check">✓</div>
+            </div>
+            <div class="hero-decoration"></div>
+        </section>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <p>{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% set total_files = files|length %}
+        {% set total_bytes = namespace(value=0) %}
+        {% set document_count = namespace(value=0) %}
+        {% set image_count = namespace(value=0) %}
+        {% set other_count = namespace(value=0) %}
+
+        {% for file in files %}
+            {% set total_bytes.value = total_bytes.value + file.size %}
+            {% if file.category == 'Documents' %}
+                {% set document_count.value = document_count.value + 1 %}
+            {% elif file.category == 'Images' %}
+                {% set image_count.value = image_count.value + 1 %}
+            {% else %}
+                {% set other_count.value = other_count.value + 1 %}
+            {% endif %}
+        {% endfor %}
+
+        <!-- Statistics -->
+        <section class="stats-grid">
+            <article class="stat-card">
+                <div class="stat-top">
+                    <span class="stat-icon purple-icon">▤</span>
+                    <span class="stat-label">YOUR LIBRARY</span>
+                </div>
+                <div class="stat-value">{{ total_files }}</div>
+                <div class="stat-description">Total stored files</div>
+                <div class="stat-progress">
+                    <span class="progress-purple"
+                          style="width: {{ 100 if total_files else 0 }}%"></span>
+                </div>
+                <div class="stat-foot">Files in your cloud library</div>
+            </article>
+
+            <article class="stat-card">
+                <div class="stat-top">
+                    <span class="stat-icon cyan-icon">◈</span>
+                    <span class="stat-label">CLOUD USAGE</span>
+                </div>
+                <div class="stat-value">
+                    {% if total_bytes.value >= 1048576 %}
+                        {{ (total_bytes.value / 1048576)|round(2) }}
+                        <small>MB</small>
+                    {% else %}
+                        {{ (total_bytes.value / 1024)|round(1) }}
+                        <small>KB</small>
+                    {% endif %}
+                </div>
+                <div class="stat-description">Storage used by your files</div>
+                <div class="stat-progress">
+                    <span class="progress-cyan"
+                          style="width: {{ [total_bytes.value / 1048576, 100]|min }}%"></span>
+                </div>
+                <div class="stat-foot">Actual size of listed files</div>
+            </article>
+
+            <article class="stat-card">
+                <div class="stat-top">
+                    <span class="stat-icon orange-icon">▧</span>
+                    <span class="stat-label">DOCUMENTS</span>
+                </div>
+                <div class="stat-value">{{ document_count.value }}</div>
+                <div class="stat-description">Notes, PDFs and assignments</div>
+                <div class="stat-mini-tags">
+                    <span>Study material</span>
+                    <span>Reports</span>
+                </div>
+            </article>
+
+            <article class="stat-card">
+                <div class="stat-top">
+                    <span class="stat-icon green-icon">▧</span>
+                    <span class="stat-label">IMAGES</span>
+                </div>
+                <div class="stat-value">{{ image_count.value }}</div>
+                <div class="stat-description">Images and visual resources</div>
+                <div class="stat-mini-tags">
+                    <span>Photos</span>
+                    <span>Diagrams</span>
+                </div>
+            </article>
+        </section>
+        
+<section class="storage-progress-card">
+    <div class="storage-progress-header">
+        <div>
+            <h3>☁️ Cloud Storage Usage</h3>
+            <p>Monitor your StudySpace storage</p>
+        </div>
+        <span class="storage-percentage">
+            {{ storage_percentage }}%
+        </span>
+    </div>
+
+    <div class="storage-progress-track">
+        <div class="storage-progress-fill"
+             style="width: {{ storage_percentage }}%;">
+        </div>
+    </div>
+
+    <div class="storage-progress-footer">
+        <span>{{ storage_mb }} MB used</span>
+        <span>of 100 MB</span>
+    </div>
+</section>
+<!-- Subject-wise Analytics -->
+<section class="subject-analytics-card">
+    <div class="analytics-header">
+        <h3>📚 Subject-wise Analytics</h3>
+        <p>Explore your study material by subject</p>
+    </div>
+
+    <div class="subject-analytics-grid">
+        {% for subject, count in subject_counts.items() %}
+        <div class="subject-analytics-item">
+            <div class="subject-analytics-info">
+                <span class="subject-name">{{ subject }}</span>
+                <span class="subject-file-count">
+                    {{ count }} file{% if count != 1 %}s{% endif %}
+                </span>
+            </div>
+
+            <div class="subject-analytics-track">
+                <div class="subject-analytics-fill"
+                     style="width: {{ (count / (subject_counts.values() | sum) * 100) if (subject_counts.values() | sum) > 0 else 0 }}%;">
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+
+        <!-- Upload Area -->
+        <section class="upload-card" id="upload">
+            <div class="section-heading">
+                <div>
+                    <span class="section-kicker">ADD TO YOUR WORKSPACE</span>
+                    <h2>Upload your files</h2>
+                    <p>Keep your academic resources safe and organized.</p>
+                </div>
+                <span class="upload-heading-icon">↥</span>
+            </div>
+
+            <form action="{{ url_for('upload') }}" method="POST"
+                  enctype="multipart/form-data" class="upload-form">
+                <label for="file-upload" class="drop-zone">
+                    <span class="upload-cloud">↑</span>
+                    <strong>Choose a file to upload</strong>
+                    <span>Click here to browse files on your device</span>
+                    <small>Files are stored in your private Amazon S3 bucket.</small>
+                    <input type="file" id="file-upload" name="file" required>
+                </label>
+                <button type="submit" class="upload-button">
+                    Upload to Cloud <span>↗</span>
+                </button>
+            </form>
+        </section>
+
+        <!-- File Library -->
+        <section class="files-card" id="my-files">
+            <div class="library-heading">
+                <div>
+                    <span class="section-kicker">YOUR WORKSPACE</span>
+                    <h2>My Files <span class="file-count">{{ total_files }}</span></h2>
+                    <p>Everything you've stored, in one organized place.</p>
+                </div>
+            </div>
+
+            {% if message %}
+                <p class="notice">{{ message }}</p>
+            {% endif %}
+
+            
+<div class="stats-container">
+
+    <div class="stat-card">
+        <div class="stat-icon">📁</div>
+        <div class="stat-info">
+            <p>Total Files</p>
+            <h2>{{ total_files }}</h2>
+        </div>
+    </div>
+
+    
+<div class="stat-card">
+    <div class="stat-icon">☁️</div>
+    <div class="stat-info">
+        <p>Storage Used</p>
+        <h2 class="storage-value">
+            {% if total_storage < 1024 %}
+                {{ total_storage }} <span>Bytes</span>
+            {% elif total_storage < 1048576 %}
+                {{ storage_kb }} <span>KB</span>
+            {% elif total_storage < 1073741824 %}
+                {{ storage_mb }} <span>MB</span>
+            {% else %}
+                {{ "%.2f"|format(total_storage / 1073741824) }} <span>GB</span>
+            {% endif %}
+        </h2>
+    </div>
+</div>
+
+
+    <div class="stat-card">
+        <div class="stat-icon">📚</div>
+        <div class="stat-info">
+            <p>Subjects</p>
+            <h2>{{ category_counts.get('Computer Networks', 0) + category_counts.get('Cloud Computing', 0) + category_counts.get('Theory of Computation', 0) + category_counts.get('Artificial Intelligence', 0) }}</h2>
+        </div>
+    </div>
+
+</div>
+<div class="category-filters">
+    <button type="button" class="filter-btn active"
+            data-category="All">All Files</button>
+
+    <button type="button" class="filter-btn"
+            data-category="Computer Networks">Computer Networks</button>
+
+    <button type="button" class="filter-btn"
+            data-category="Cloud Computing">Cloud Computing</button>
+
+    <button type="button" class="filter-btn"
+            data-category="Theory of Computation">Theory of Computation</button>
+
+    <button type="button" class="filter-btn"
+            data-category="Artificial Intelligence">Artificial Intelligence</button>
+
+    <button type="button" class="filter-btn"
+            data-category="Documents">Documents</button>
+
+    <button type="button" class="filter-btn"
+            data-category="Images">Images</button>
+
+    <button type="button" class="filter-btn"
+            data-category="Code">Code</button>
+
+    <button type="button" class="filter-btn"
+            data-category="Archives">Archives</button>
+
+    <button type="button" class="filter-btn"
+            data-category="Audio">Audio</button>
+
+    <button type="button" class="filter-btn"
+            data-category="Video">Video</button>
+
+    <button type="button" class="filter-btn"
+            data-category="Other">Other</button>
+</div>
+
+
+            {% if files %}
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>File Name</th>
+                                <th>Category</th>
+                                <th>Size</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for file in files %}
+                            <tr data-category="{{ file.category }}">
+                                <td>
+                                    <div class="file-name-cell">
+                                        <span class="file-type-icon
+                                            {% if file.category == 'Documents' %}file-doc
+                                            {% elif file.category == 'Images' %}file-image
+                                            {% elif file.category == 'Code' %}file-code
+                                            {% elif file.category == 'Archives' %}file-archive
+                                            {% elif file.category == 'Audio' %}file-audio
+                                            {% elif file.category == 'Video' %}file-video
+                                            {% else %}file-other{% endif %}">
+                                            {% if file.category == 'Documents' %}PDF
+                                            {% elif file.category == 'Images' %}IMG
+                                            {% elif file.category == 'Code' %}DEV
+                                            {% elif file.category == 'Archives' %}ZIP
+                                            {% elif file.category == 'Audio' %}AUD
+                                            {% elif file.category == 'Video' %}VID
+                                            {% else %}FILE{% endif %}
+                                        </span>
+                                        <span class="file-name-text">{{ file.name }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="category-badge
+                                        {% if file.category == 'Documents' %}badge-doc
+                                        {% elif file.category == 'Images' %}badge-image
+                                        {% elif file.category == 'Code' %}badge-code
+                                        {% elif file.category == 'Archives' %}badge-archive
+                                        {% elif file.category == 'Audio' %}badge-audio
+                                        {% elif file.category == 'Video' %}badge-video
+                                        {% else %}badge-other{% endif %}">
+                                        {{ file.category }}
+                                    </span>
+                                </td>
+                                <td>{{ (file.size / 1024)|round(1) }} KB</td>
+                                <td class="actions">
+                                    <a class="download"
+                                       href="{{ url_for('download', filename=file.name) }}">
+                                        Download
+                                    </a>
+                                    <form action="{{ url_for('delete', filename=file.name) }}"
+                                          method="POST"
+                                          onsubmit="return confirm('Delete this file?')">
+                                        <button class="delete" type="submit">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty">
+                    <span class="empty-icon">☁</span>
+                    <h3>Your library is ready</h3>
+                    <p>Upload your first study file to see it appear here.</p>
+                    <a href="#upload" class="empty-button">Upload a file</a>
+                </div>
+            {% endif %}
+        </section>
+
+        
+<section class="files-card study-planner-card" id="study-planner">
+    <div class="section-heading">
+        <div>
+            <span class="eyebrow">STAY ON TRACK</span>
+            <h2>Study Planner</h2>
+            <p>Organize your subjects, deadlines, and study tasks.</p>
+        </div>
+    </div>
+
+    <form action="{{ url_for('add_task') }}" method="POST" class="study-task-form">
+        <div class="task-form-field">
+            <label for="task-title">Task title</label>
+            <input
+                type="text"
+                id="task-title"
+                name="title"
+                placeholder="e.g. Revise Network Layer"
+                maxlength="150"
+                required
+            >
+        </div>
+
+        <div class="task-form-field">
+            <label for="task-subject">Subject</label>
+            <select id="task-subject" name="subject" required>
+                <option value="Computer Networks">Computer Networks</option>
+                <option value="Cloud Computing">Cloud Computing</option>
+                <option value="Theory of Computation">Theory of Computation</option>
+                <option value="Artificial Intelligence">Artificial Intelligence</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+
+        <div class="task-form-field">
+            <label for="task-due-date">Due date</label>
+            <input type="date" id="task-due-date" name="due_date" required>
+        </div>
+
+        <button type="submit" class="hero-button">+ Add Task</button>
+    </form>
+
+    <div class="study-task-list">
+        {% if tasks %}
+            {% for task in tasks %}
+                <div class="study-task-item">
+                    <div class="study-task-info">
+                        <strong>{{ task.title }}</strong>
+                        <span>{{ task.subject }} · Due {{ task.due_date }}</span>
+                        {% if task.completed %}
+                            <span class="task-status completed">Completed</span>
+                        {% else %}
+                            <span class="task-status pending">Pending</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="study-task-actions">
+                        <form action="{{ url_for('toggle_task', task_id=task.id) }}" method="POST">
+                            <button type="submit" class="task-action-button">
+                                {% if task.completed %}Undo{% else %}Complete{% endif %}
+                            </button>
+                        </form>
+
+                        <form action="{{ url_for('delete_task', task_id=task.id) }}" method="POST">
+                            <button type="submit" class="task-delete-button">Delete</button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty">
+                <h3>No study tasks yet</h3>
+                <p>Add your first task above to start planning your studies.</p>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+        <footer class="dashboard-footer">
+            <span>☁ StudySpace Cloud</span>
+            <span>Built for students · Powered by Flask &amp; Amazon S3</span>
+        </footer>
+    </main>
+</div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+<script>
+document.querySelectorAll("[data-sidebar-category]").forEach(function (link) {
+    link.addEventListener("click", function () {
+        const category = this.dataset.sidebarCategory;
+        const filterButton = document.querySelector(
+            '.filter-btn[data-category="' + category + '"]'
+        );
+        if (filterButton) filterButton.click();
+    });
+});
+</script>
+
+</body>
+</html>
